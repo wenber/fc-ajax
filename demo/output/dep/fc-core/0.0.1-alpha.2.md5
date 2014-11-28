@@ -1,0 +1,16 @@
+{
+    "LICENSE": "94984eb5a843ce1d48e7cd40996a667c",
+    "README.md": "c0e9b02ef2ce52e0e9232dea04186d53",
+    "module.conf": "178a3332f99183089d6c70c0b48194b2",
+    "package.json": "c04471881535bcc55b649a6d64b1d6c9",
+    "src/aop.js": "56dff0c55cf08474020c13b73be371dd",
+    "src/assert.js": "4d4dad694bceb84e417dffe888aaf11b",
+    "src/main.js": "c38b4ee4d107b3ec6b61609659785ed6",
+    "src/browser.js": "bb97cdd5dced9b18b80a7ec3f1cfea23",
+    "src/oo.js": "a63e251349af37a2d1bad3bc9d945e14",
+    "src/util.js": "e7c599120374c307a521cda90ae83fcd",
+    "test/edp-build-config.js": "bcba063672a41f1649ec4234d863b3bd",
+    "test/edp-webserver-config.js": "af0b7b4fd3ee9b2a26e142f567f471b3",
+    "test/main.html": "ec2cb85ec32746034db11c4132e1a353",
+    "test/src/main.js": "cf0cfde4192b214009a51c7d16eb2932"
+}

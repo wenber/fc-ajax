@@ -1,17 +1,18 @@
 {
     "name": "fc-ajax",
-    "version": "0.0.1-alpha.1",
-    "contributors": [
+    "version": "0.0.1-alpha.3",
+    "maintainers": [
         {
             "name": "Leo Wang",
             "email": "wangkemiao@baidu.com"
         }
     ],
+    "contributors": [],
     "dependencies": {
-        "er": "3.1.0-alpha.8"
+        "fc-core": "0.0.1-alpha.2"
     },
     "main": "main",
     "description": "ajax封装库",
-    "homepage": "https://gitlab.com/fc-fe/fc-ajax",
-    "repository": "git://gitlab.com/fc-fe/fc-ajax"
+    "homepage": "https://github.com/fcfe/fc-ajax",
+    "repository": "git://github.com/fcfe/fc-ajax"
 }
