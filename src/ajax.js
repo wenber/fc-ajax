@@ -9,6 +9,7 @@
 define(function (require) {
     'use strict';
 
+    var _ = require('underscore');
     var fc = require('fc-core');
     var hooks = require('./hooks');
     var config = require('./config');
@@ -45,7 +46,7 @@ define(function (require) {
         }
         fc.assert.hasProperty(options, 'url', 'url property is required');
 
-        options = fc.util.deepExtend({}, me.config, options);
+        options = _.deepExtend({}, me.config, options);
 
         // 创建xhr实例
         var xhr = window.XMLHttpRequest
@@ -142,7 +143,7 @@ define(function (require) {
                     var data = xhr.responseText;
                     if (options.dataType === 'json') {
                         try {
-                            data = fc.util.parseJSON(data);
+                            data = JSON.parse(data);
                         }
                         catch (ex) {
                             // 服务器返回的数据不符合JSON格式，认为请求失败
@@ -169,9 +170,9 @@ define(function (require) {
             };
 
             var method = options.method.toUpperCase();
-            var data = fc.util.deepExtend({}, options.urlParam);
+            var data = _.deepExtend({}, options.urlParam);
             if (method === 'GET') {
-                fc.util.deepExtend(data, options.data);
+                _.deepExtend(data, options.data);
             }
             if (options.cache === false) {
                 data[REQID_PARAM_KEY] = fc.util.uid();
@@ -210,7 +211,7 @@ define(function (require) {
         });
 
         var fakeXHR = Promise.race([xhrPromise, racingPromise]);
-        fc.util.deepExtend(fakeXHR, xhrWrapper);
+        _.deepExtend(fakeXHR, xhrWrapper);
 
         fakeXHR.ensure(function () {
             clearTimeout(timeoutTic);
@@ -274,7 +275,7 @@ define(function (require) {
         return this.request(options);
     };
 
-    var Ajax = fc.oo.derive(require('mini-event/EventTarget'), proto);
+    var Ajax = fc.oo.derive(require('fc-core/EventTarget'), proto);
     var instance = new Ajax();
     instance.Ajax = Ajax;
     return instance;

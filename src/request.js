@@ -48,7 +48,7 @@ define(function (require) {
         ajaxOption.urlParam.reqId = reqId;
 
         // 补充data
-        ajaxOption.data = fc.util.deepExtend({}, globalData, {
+        ajaxOption.data = _.deepExtend({}, globalData, {
             reqId: reqId,
             path: path
         });

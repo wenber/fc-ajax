@@ -62,6 +62,8 @@ define(function (require) {
      */
     proto.request = function () {
         var me = this;
+
+        // 行为包裹，以便处理
         hooks.beforeEachRequest.call(me);
 
         /**
@@ -77,6 +79,10 @@ define(function (require) {
             )
             .catch(_.bind(me.processXhrException, me))
             .ensure(_.bind(hooks.afterEachRequest, me));
+        }).catch(function (e) {  // to catch running exception in constructor
+            me.fire('error', {
+                error: e
+            });
         });
 
         return me.promise;
