@@ -7,7 +7,6 @@ define(function (require) {
 
     var _ = require('underscore');
     var fc = require('fc-core');
-    var hooks = require('./hooks');
     var globalData = require('./globalData');
     var config = require('./config');
     var AjaxRequest = require('./AjaxRequest');
@@ -59,7 +58,7 @@ define(function (require) {
         }
 
         // 补充params
-        ajaxOption.data.params = JSON.stringify(data);
+        ajaxOption.data.params = JSON.stringify(data || {});
 
         return ajaxOption;
     }

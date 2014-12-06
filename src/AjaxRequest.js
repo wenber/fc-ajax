@@ -9,7 +9,6 @@ define(function (require) {
 
     var _ = require('underscore');
     var fc = require('fc-core');
-    var ajax = require('er/ajax');  // 当前依然依赖er/ajax
 
     var Promise = require('fc-core/Promise');
     var EventTarget = require('fc-core/EventTarget');
@@ -59,6 +58,7 @@ define(function (require) {
 
     /**
      * 执行请求
+     * @return {Promise} 异步执行状态
      */
     proto.request = function () {
         var me = this;
@@ -66,9 +66,6 @@ define(function (require) {
         // 行为包裹，以便处理
         hooks.beforeEachRequest.call(me);
 
-        /**
-         * @property {meta.Promise} [promise] 异步状态标识
-         */
         me.promise = new Promise(function (resolve, reject) {
             me.resolve = resolve;
             me.reject = reject;
@@ -90,10 +87,22 @@ define(function (require) {
 
     /**
      * 处理ajax请求成功，转为定制状态
+     * @param {Object=} result ajax的执行结果
+     * @return {Promise} 定制状态
      */
     proto.processXhrSuccess = function (result) {
         var me = this;
         try {
+
+            // 如果是转向行为，直接转向，整体转为reject
+            if (result.redirect) {
+                return Promise.reject({
+                    status: status.REQ_CODE.REDIRECT,
+                    desc: status.REQ_CODE_DESC.REDIRECT,
+                    response: result
+                });
+            }
+
             if (_.isFunction(hooks.businessCheck)) {
                 // 直接返回businessCheck的结果
                 result = hooks.businessCheck.call(me, result);
@@ -107,7 +116,9 @@ define(function (require) {
                         // resolve整个状态
                         me.resolve(response);
                     },
-                    function (response) { return Promise.reject(response); }
+                    function (response) {
+                        return Promise.reject(response);
+                    }
                 );
             }
 
@@ -130,12 +141,14 @@ define(function (require) {
 
     /**
      * 处理ajax失败！
+     * @param {Object} result 上一步的执行结果
+     * @return {Promise} 定制状态
      */
     proto.processXhrFailure = function (result) {
 
         // 先处理超时
         // HTTP 408: Request Timeout
-        if (result.status == 408) {
+        if (result.status === 408) {
             return Promise.reject({
                 status: status.REQ_CODE.TIMEOUT,
                 desc: status.REQ_CODE_DESC.TIMEOUT,
@@ -154,6 +167,7 @@ define(function (require) {
 
     /**
      * 处理成功处理方法中手动转为失败状态的状况
+     * @param {Object} result 上一步的执行结果
      */
     proto.processXhrException = function (result) {
 
@@ -168,6 +182,17 @@ define(function (require) {
 
         // 如果已经有了status定义，直接返回
         if (result.status) {
+
+            if (result.status === status.REQ_CODE.REDIRECT) {
+                fc.setImmediate(function () {
+                    window.location.href = result.redirecturl
+                        || require('./config').redirectUrl;
+                });
+
+                // leave hanging
+                return;
+            }
+
             this.reject(result);
             return;
         }

@@ -51,9 +51,13 @@ define(function (require) {
             case '[object Object]':
                 var result = [];
                 for (var name in data) {
-                    var propertyKey = getKey(name, prefix);
-                    var propertyValue = this.serializeData(propertyKey, data[name]);
-                    result.push(propertyValue);
+                    if (data.hasOwnProperty(name)) {
+                        var propertyKey = getKey(name, prefix);
+                        var propertyValue = this.serializeData(
+                            propertyKey, data[name]
+                        );
+                        result.push(propertyValue);
+                    }
                 }
                 return result.join('&');
             default:
@@ -67,6 +71,7 @@ define(function (require) {
      * 获取组合的键名，例如sth.sub
      * @param {string} propertyName 属性名
      * @param {string=} parentKey 可选的父级键名
+     * @return {string} 组合键名
      */
     serializeData.getKey = function (propertyName, parentKey) {
         return parentKey ? parentKey + '.' + propertyName : propertyName;
@@ -89,7 +94,7 @@ define(function (require) {
         // afterReceive: noop,
         // afterParse: noop,
 
-        //特定的hooks方法，会导致ajax行为发生变化
+        // 特定的hooks方法，会导致ajax行为发生变化
         /**
          * ajax请求成功之后立刻执行
          * 如果制定了businessCheck，会根据它的执行结果决定整个执行的状态是成功还是失败
@@ -101,7 +106,7 @@ define(function (require) {
         beforeEachRequest: noop,
         afterEachRequest: noop,
         eachSuccess: noop,
-        eachFailure: noop,
+        eachFailure: noop
     };
 
     return hooks;

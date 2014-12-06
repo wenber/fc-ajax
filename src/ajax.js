@@ -52,6 +52,7 @@ define(function (require) {
         var xhr = window.XMLHttpRequest
             ? new XMLHttpRequest()
             : new window.ActiveXObject('Microsoft.XMLHTTP');
+        var fakeXHR;
 
         // 扩展fakeXHR，让它更像xhr对象
         var xhrWrapper = {
@@ -199,7 +200,7 @@ define(function (require) {
             else {
                 var contentType = options.contentType
                     || 'application/x-www-form-urlencoded';
-                var query = me.hooks.serializeData(
+                query = me.hooks.serializeData(
                     '', options.data, contentType, xhrWrapper
                 );
                 if (options.charset) {
@@ -210,7 +211,7 @@ define(function (require) {
             }
         });
 
-        var fakeXHR = Promise.race([xhrPromise, racingPromise]);
+        fakeXHR = Promise.race([xhrPromise, racingPromise]);
         _.deepExtend(fakeXHR, xhrWrapper);
 
         fakeXHR.ensure(function () {

@@ -4,7 +4,7 @@
  */
 
 define(function (require) {
-    
+
     var config = {
         method: 'POST',
         data: {},
