@@ -80,6 +80,7 @@ define(function (require) {
             me.fire('error', {
                 error: e
             });
+            return Promise.reject(e);
         });
 
         return me.promise;
