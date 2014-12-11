@@ -4,7 +4,17 @@
  */
 
 define(function (require) {
-    var ajax = {};
+    'use strict';
+
+    /**
+     * fc-ajax 存储库
+     * @module ajax
+     */
+    var ajax = {
+        version: '0.0.1-alpha.7',
+
+        request: require('./request')
+    };
 
     return ajax;
 });
