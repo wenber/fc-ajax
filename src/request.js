@@ -49,7 +49,8 @@ define(function (require) {
         // 补充data
         ajaxOption.data = _.deepExtend({}, globalData, {
             reqId: reqId,
-            path: path
+            path: path,
+            eventId: options ? options.eventId : ''
         });
 
         // 处理eventId
