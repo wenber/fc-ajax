@@ -10,6 +10,7 @@ define(function (require) {
     var globalData = require('./globalData');
     var config = require('./config');
     var AjaxRequest = require('./AjaxRequest');
+    var ajaxSession = require('./ajaxSession');
 
     function request(path, data, options) {
         var ajaxOption = adjustOption.apply(this, arguments);
@@ -53,9 +54,13 @@ define(function (require) {
             eventId: options ? options.eventId : ''
         });
 
-        // 处理eventId
+        // 处理eventId,
+        // 如果用户已经传入了，则使用传入的
+        // 如果用户没有传入，则使用全局的eventId，
+        // 如果全局的eventId为空，则使用随机eventId
         if (!ajaxOption.data.eventId) {
-            ajaxOption.data.eventId = fc.util.guid();
+            var sessionId = options ? options.sessionId : null;
+            ajaxOption.data.eventId = ajaxSession.session ? ajaxSession.session[sessionId] : fc.util.guid();
         }
 
         // 补充params
