@@ -60,7 +60,10 @@ define(function (require) {
         // 如果全局的eventId为空，则使用随机eventId
         if (!ajaxOption.data.eventId) {
             var sessionId = options ? options.sessionId : null;
-            ajaxOption.data.eventId = ajaxSession.session ? ajaxSession.session[sessionId] : fc.util.guid();
+
+            ajaxOption.data.eventId = ajaxSession.session
+                ? ajaxSession.session[sessionId] || fc.util.guid()
+                : fc.util.guid();
         }
 
         // 补充params
