@@ -20,6 +20,7 @@ define(function (require) {
 
     return {
         session: ajaxSession,
-        createSessionId: fc.util.guid
+        createSessionId: fc.util.guid,
+        globalEventId: ''
     };
 });
