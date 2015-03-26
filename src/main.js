@@ -11,7 +11,7 @@ define(function (require) {
      * @module ajax
      */
     var ajax = {
-        version: '0.0.1-alpha.7',
+        version: '0.0.1-alpha.8',
 
         request: require('./request')
     };
