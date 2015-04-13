@@ -1,5 +1,6 @@
 /**
- * @file 发送请求
+ * @ignore
+ * @file 发送请求的主接口方法
  * @author Leo Wang(wangkemiao@baidu.com)
  */
 
@@ -11,6 +12,16 @@ define(function (require) {
     var config = require('./config');
     var AjaxRequest = require('./AjaxRequest');
 
+    /**
+     * 发送请求的主接口方法
+     *
+     * @class fc.ajax.request
+     *
+     * @param  {string} path 请求的path字段，不是url，这个字段会分别置于请求的url和发送的数据中
+     * @param  {?Object} data 携带的数据
+     * @param  {?Object} options 额外的参数
+     * @return {meta.Promise} 请求的Promise
+     */
     function request(path, data, options) {
         var ajaxOption = adjustOption.apply(this, arguments);
 

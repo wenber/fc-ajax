@@ -1,4 +1,5 @@
 /**
+ * @ignore
  * @file ajax相关配置
  *
  * @author Leo Wang(wangkemiao@baidu.com)
@@ -8,6 +9,9 @@ define(function (require) {
 
     /**
      * ajax数据携带的业务status code配置
+     *
+     * @private
+     * @member fc.ajax.status
      * @type {Object}
      */
     var REQ_STATUS_CODE = {
@@ -28,6 +32,9 @@ define(function (require) {
 
     /**
      * ajax的数据携带的业务status code对应的desc配置
+     *
+     * @private
+     * @member fc.ajax.status
      * @type {Object}
      */
     var REQ_STATUS_DESC = {
@@ -54,20 +61,22 @@ define(function (require) {
     }
 
     /**
-     * ajax相关配置
-     *
+     * ajax的status的相关配置
+     * @class fc.ajax.status
      * @singleton
      */
-    return {
+    var status = {
 
         /**
-         * @property {Mixed} [REQ_CODE] ajax行为处理结果的业务code
+         * @property {Object} [REQ_CODE] ajax行为处理结果的业务code
          */
         REQ_CODE: REQ_STATUS_CODE,
 
         /**
-         * @property {Mixed} [REQ_CODE_DESC] ajax行为处理结果的业务code描述
+         * @property {Object} [REQ_CODE_DESC] ajax行为处理结果的业务code描述
          */
         REQ_CODE_DESC: REQ_STATUS_DESC
     };
+
+    return status;
 });

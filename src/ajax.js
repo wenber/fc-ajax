@@ -18,12 +18,13 @@ define(function (require) {
     var REQID_PARAM_KEY = '_';
 
     /**
-     * @class Ajax
+     * 这是一个比较纯粹的ajax行为类，但是依然挂载当前的{@link fc.ajax.config}和{@link fc.ajax.hooks}
      *
-     * `require('fc-ajax/ajax')`是该类的全局实例
-     * 通过`require('fc-ajax/ajax').Ajax`访问该类构造函数
+     * - `require('fc-ajax/ajax')`是该类的全局实例
+     * - `require('fc-ajax/ajax').Ajax`则是访问该类的构造函数
      *
-     * @extends mini-event.EventTarget
+     * @class fc.ajax.Ajax
+     * @extends meta.EventTarget
      * @constructor
      */
     var proto = {};

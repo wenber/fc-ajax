@@ -17,14 +17,14 @@ define(function (require) {
 
     /**
      * 单个Ajax行为类
-     * @class AjaxRequest
+     * @class fc.ajax.AjaxRequest
      */
     var proto = {};
 
     /**
      * 单个Ajax行为类 - 构造函数
      * @constructor
-     * @extends EventTarget
+     * @extends meta.EventTarget
      * @param {meta.AjaxOption} option 请求的参数
      */
     proto.constructor = function (option) {
@@ -58,7 +58,7 @@ define(function (require) {
 
     /**
      * 执行请求
-     * @return {Promise} 异步执行状态
+     * @return {meta.Promise} 异步执行状态
      */
     proto.request = function () {
         var me = this;
@@ -89,7 +89,7 @@ define(function (require) {
     /**
      * 处理ajax请求成功，转为定制状态
      * @param {Object=} result ajax的执行结果
-     * @return {Promise} 定制状态
+     * @return {meta.Promise} 定制状态
      */
     proto.processXhrSuccess = function (result) {
         var me = this;
@@ -143,7 +143,7 @@ define(function (require) {
     /**
      * 处理ajax失败！
      * @param {Object} result 上一步的执行结果
-     * @return {Promise} 定制状态
+     * @return {meta.Promise} rejected状态的Promise
      */
     proto.processXhrFailure = function (result) {
 

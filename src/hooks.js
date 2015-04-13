@@ -1,6 +1,6 @@
 /**
+ * @ignore
  * @file ajax的hooks
- *
  * @author Leo Wang(wangkemiao@baidu.com)
  */
 
@@ -10,8 +10,13 @@ define(function (require) {
 
     /**
      * 序列化数组
+     *
+     * @member fc.ajax.hooks
+     * @private
+     *
      * @param {?string} prefix 前缀
      * @param {Array.<*>} array 数组
+     *
      * @return {string}
      */
     function serializeArray(prefix, array) {
@@ -28,8 +33,13 @@ define(function (require) {
 
     /**
      * 序列化数据
+     *
+     * @member fc.ajax.hooks
+     * @private
+     *
      * @param {?string} prefix 前缀
      * @param {*} data 数据
+     *
      * @return {string}
      */
     function serializeData(prefix, data) {
@@ -69,8 +79,12 @@ define(function (require) {
 
     /**
      * 获取组合的键名，例如sth.sub
+     * @ignore
+     * @private
+     *
      * @param {string} propertyName 属性名
      * @param {string=} parentKey 可选的父级键名
+     *
      * @return {string} 组合键名
      */
     serializeData.getKey = function (propertyName, parentKey) {
@@ -78,13 +92,13 @@ define(function (require) {
     };
 
     /**
-     * 钩子们
-     * beforeEachRequest 在执行任意请求以前被调用
-     * afterEachRequest 在执行任意请求之后被调用
-     * eachSuccess 在任意ajax经过数据分析后认为是成功后调用
-     * eachFailure 在任意ajax经过数据分析后认为是失败后调用
+     * ajax行为的钩子们
+     *
+     * @class fc.ajax.hooks
+     * @mixins meta.AjaxHook
+     * @type {meta.AjaxHook}
+     *
      */
-
     var hooks = {
         // er/ajax中的hooks
         serializeData: serializeData,  // 序列化数据，数组数据会走serializeArray
@@ -95,11 +109,10 @@ define(function (require) {
         // afterParse: noop,
 
         // 特定的hooks方法，会导致ajax行为发生变化
-        /**
-         * ajax请求成功之后立刻执行
-         * 如果制定了businessCheck，会根据它的执行结果决定整个执行的状态是成功还是失败
-         * @param {Object} response ajax返回的数据
-         */
+
+        // ajax请求成功之后立刻执行
+        // 如果制定了businessCheck，会根据它的执行结果决定整个执行的状态是成功还是失败
+        // @param {Object} response ajax返回的数据
         // businessCheck: noop,
 
         // 每次请求的hooks方法，不会终止执行

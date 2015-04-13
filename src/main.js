@@ -1,4 +1,5 @@
 /**
+ * @ignore
  * @file fc-ajax主入口文件
  * @author Leo Wang(wangkemiao@baidu.com)
  */
@@ -8,7 +9,7 @@ define(function (require) {
 
     /**
      * fc-ajax 存储库
-     * @module ajax
+     * @class fc.ajax
      */
     var ajax = {
         version: '0.0.1-alpha.8',
