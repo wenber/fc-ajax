@@ -186,7 +186,7 @@ define(function (require) {
 
             if (result.status === status.REQ_CODE.REDIRECT) {
                 fc.setImmediate(function () {
-                    window.location.href = result.redirecturl
+                    window.location.href = result.response.redirecturl
                         || require('./config').redirectUrl;
                 });
 
