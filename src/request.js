@@ -10,6 +10,7 @@ define(function (require) {
     var globalData = require('./globalData');
     var config = require('./config');
     var AjaxRequest = require('./AjaxRequest');
+    var ajaxSession = require('./ajaxSession');
 
     function request(path, data, options) {
         var ajaxOption = adjustOption.apply(this, arguments);
@@ -49,12 +50,22 @@ define(function (require) {
         // 补充data
         ajaxOption.data = _.deepExtend({}, globalData, {
             reqId: reqId,
-            path: path
+            path: path,
+            eventId: options ? options.eventId : ''
         });
 
-        // 处理eventId
+        // 处理eventId,
+        // 如果用户已经传入了，则使用传入的
+        // 如果用户没有传入，则使用全局的eventId，
+        // 如果全局的eventId为空，则使用随机eventId
         if (!ajaxOption.data.eventId) {
-            ajaxOption.data.eventId = fc.util.guid();
+            var sessionId = options ? options.sessionId : null;
+            ajaxOption.data.eventId = ajaxSession.session[sessionId] || ajaxSession.globalEventId || fc.util.guid();
+
+            // 当用户产生自定义的sessionId时，清空全局的globalEventId，认为前一次任务已经结束，新的任务已经开始（主要用在单页面的hash跳转）
+            if (ajaxSession.session[sessionId]) {
+                ajaxSession.globalEventId = '';
+            }
         }
 
         // 补充params
