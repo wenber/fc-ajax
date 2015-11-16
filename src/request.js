@@ -58,12 +58,18 @@ define(function (require) {
         var reqId = fc.util.uid();
         ajaxOption.urlParam.reqId = reqId;
 
-        // 补充data
-        ajaxOption.data = _.deepExtend({}, globalData, {
+        var extraData = {
             reqId: reqId,
             path: path,
             eventId: options ? options.eventId : ''
-        });
+        };
+        // 处理source
+        // 如果传入则发送
+        if (options && options.source) {
+            extraData.source = options.source;
+        }
+        // 补充data
+        ajaxOption.data = _.deepExtend({}, globalData, extraData);
 
         // 处理eventId,
         // 如果用户已经传入了，则使用传入的
