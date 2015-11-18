@@ -77,11 +77,11 @@ define(function (require) {
         // 如果全局的eventId为空，则使用随机eventId
         if (!ajaxOption.data.eventId) {
             var sessionId = options ? options.sessionId : null;
-            ajaxOption.data.eventId = ajaxSession.session[sessionId] || ajaxSession.globalEventId || fc.util.guid();
+            ajaxOption.data.eventId = ajaxSession.session[sessionId] || ajaxSession.actionEventId || fc.util.guid()
 
-            // 当用户产生自定义的sessionId时，清空全局的globalEventId，认为前一次任务已经结束，新的任务已经开始（主要用在单页面的hash跳转）
+            // 当用户产生自定义的sessionId时，清空actionEventId，认为前一次任务已经结束，新的任务已经开始
             if (ajaxSession.session[sessionId]) {
-                ajaxSession.globalEventId = '';
+                ajaxSession.actionEventId = '';
             }
         }
 

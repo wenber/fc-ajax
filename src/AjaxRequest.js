@@ -157,11 +157,22 @@ define(function (require) {
             });
         }
 
+        // 或者是请求失败
+        if (status < 200 || (status >= 300 && status !== 304)) {
+            return Promise.reject({
+                httpStatus: result.status,
+                status: status.REQ_CODE.REQUEST_ERROR,
+                desc: status.REQ_CODE_DESC.REQUEST_ERROR,
+                response: null
+            });
+        }
+
         // 请求失败：HTTP status < 200 || (status >= 300 && status !== 304
         return Promise.reject({
             httpStatus: result.status,
             status: status.REQ_CODE.REQUEST_ERROR,
             desc: status.REQ_CODE_DESC.REQUEST_ERROR,
+            error: JSON.stringify(result.error),
             response: null
         });
     };

@@ -65,18 +65,16 @@ define(function (require) {
      * @class fc.ajax.status
      * @singleton
      */
-    var status = {
+    return {
 
         /**
-         * @property {Object} [REQ_CODE] ajax行为处理结果的业务code
+         * @property {Mixed} [REQ_CODE] ajax行为处理结果的业务code
          */
         REQ_CODE: REQ_STATUS_CODE,
 
         /**
-         * @property {Object} [REQ_CODE_DESC] ajax行为处理结果的业务code描述
+         * @property {Mixed} [REQ_CODE_DESC] ajax行为处理结果的业务code描述
          */
         REQ_CODE_DESC: REQ_STATUS_DESC
     };
-
-    return status;
 });

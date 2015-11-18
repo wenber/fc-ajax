@@ -143,13 +143,20 @@ define(function (require) {
                     }
 
                     var data = xhr.responseText;
+                    var errorDetail;
                     if (options.dataType === 'json') {
                         try {
                             data = JSON.parse(data);
                         }
                         catch (ex) {
                             // 服务器返回的数据不符合JSON格式，认为请求失败
-                            fakeXHR.error = ex;
+                            errorDetail = {
+                                responseText: data,
+                                exceptionMessage: ex.toString(),
+                                errorStage: 'JSON.parse',
+                                originalException: ex
+                            };
+                            fakeXHR.error = errorDetail;
                             reject(fakeXHR);
                             return;
                         }
@@ -160,7 +167,15 @@ define(function (require) {
                             data = me.hooks.afterParse(data, fakeXHR, options);
                         }
                         catch (ex) {
-                            fakeXHR.error = ex;
+                            errorDetail = {
+                                responseText: data,
+                                exceptionMessage: ex.toString(),
+                                errorStage: 'hooks.afterParse',
+                                hook: me.hooks.afterParse.toString(),
+                                originalException: ex
+                            };
+
+                            fakeXHR.error = errorDetail;
                             reject(fakeXHR);
                             return;
                         }
@@ -180,13 +195,14 @@ define(function (require) {
                 data[REQID_PARAM_KEY] = fc.util.uid();
             }
 
+            var path = _.detach(data, 'path');
             var query = me.hooks.serializeData(
-                '', data,'application/x-www-form-urlencoded'
+                '', data, 'application/x-www-form-urlencoded'
             );
             var url = options.url;
-            if (query) {
-                var delimiter = url.indexOf('?') >= 0 ? '&' : '?';
-                url += delimiter + query;
+            var delimiter = url.indexOf('?') >= 0 ? '&' : '?';
+            if (query || path) {
+                url += delimiter + _.chain(['path=' + path, query]).purify().values().value().join('&');
             }
 
             xhr.open(method, url, true);
