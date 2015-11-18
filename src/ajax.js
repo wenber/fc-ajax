@@ -13,6 +13,7 @@ define(function (require) {
     var fc = require('fc-core');
     var hooks = require('./hooks');
     var config = require('./config');
+    var ajaxCache = require('./ajaxCache');
     var Promise = require('fc-core/Promise');
 
     var REQID_PARAM_KEY = '_';
@@ -48,194 +49,200 @@ define(function (require) {
         fc.assert.hasProperty(options, 'url', 'url property is required');
 
         options = _.deepExtend({}, me.config, options);
+        if (options.isCacheOn && ajaxCache.hasCache(options) && ajaxCache.isCacheValid(options)) {
+            return ajaxCache.getCache(options);
+        }
+        else {
+            // 创建xhr实例
+            var xhr = window.XMLHttpRequest
+                ? new XMLHttpRequest()
+                : new window.ActiveXObject('Microsoft.XMLHTTP');
+            var fakeXHR;
 
-        // 创建xhr实例
-        var xhr = window.XMLHttpRequest
-            ? new XMLHttpRequest()
-            : new window.ActiveXObject('Microsoft.XMLHTTP');
-        var fakeXHR;
-
-        // 扩展fakeXHR，让它更像xhr对象
-        var xhrWrapper = {
-            // abort 在 racingPromise中处理
-            setRequestHeader: function (name, value) {
-                xhr.setRequestHeader(name, value);
-            },
-            getAllResponseHeaders: function () {
-                return xhr.getAllResponseHeaders();
-            },
-            getResponseHeader: function (name) {
-                return xhr.getResponseHeader(name);
-            },
-            getRequestOption: function (name) {
-                return options[name];
-            }
-        };
-
-        // 声明一个用于打断的Promise, for timeout or abort
-        var timeoutTic = null;
-        var racingPromise = new Promise(function (resolve, reject) {
-            // 处理abort
-            xhrWrapper.abort = function () {
-                // 有些浏览器`abort()`就会把`readyState`变成4，
-                // 这就会导致进入处理函数变成**resolved**状态，
-                // 因此事先去掉处理函数，然后直接进入**rejected**状态
-                xhr.onreadystatechange = null;
-                try {
-                    xhr.abort();
+            // 扩展fakeXHR，让它更像xhr对象
+            var xhrWrapper = {
+                // abort 在 racingPromise中处理
+                setRequestHeader: function (name, value) {
+                    xhr.setRequestHeader(name, value);
+                },
+                getAllResponseHeaders: function () {
+                    return xhr.getAllResponseHeaders();
+                },
+                getResponseHeader: function (name) {
+                    return xhr.getResponseHeader(name);
+                },
+                getRequestOption: function (name) {
+                    return options[name];
                 }
-                catch (ex) {}
-
-                if (!fakeXHR.status) {
-                    fakeXHR.status = 0;
-                }
-
-                fakeXHR.readyState = xhr.readyState;
-                fakeXHR.responseText = '';
-                fakeXHR.responseXML = '';
-                reject(fakeXHR);
             };
 
-            // 如果超时了，直接处理自己的状态，进而打断整个状态
-            if (options.timeout > 0) {
-                timeoutTic = setTimeout(function () {
-                    fakeXHR.status = 408; // HTTP 408: Request Timeout
-                    fakeXHR.abort();
-                }, options.timeout);
-            }
-        });
+            // 声明一个用于打断的Promise, for timeout or abort
+            var timeoutTic = null;
+            var racingPromise = new Promise(function (resolve, reject) {
+                // 处理abort
+                xhrWrapper.abort = function () {
+                    // 有些浏览器`abort()`就会把`readyState`变成4，
+                    // 这就会导致进入处理函数变成**resolved**状态，
+                    // 因此事先去掉处理函数，然后直接进入**rejected**状态
+                    xhr.onreadystatechange = null;
+                    try {
+                        xhr.abort();
+                    }
+                    catch (ex) {}
 
-        // 声明xhrPromise代表了真正的xhr对象的执行状态
-        var xhrPromise = new Promise(function (resolve, reject) {
-            // 执行beforeCreate hook
-            if (typeof me.hooks.beforeCreate === 'function') {
-                // 可以在hook中直接调用resolve和reject来改变状态
-                // 或者去关联另外一个Promise
-                var canceled = me.hooks.beforeCreate(options, resolve, reject);
-                // 如果返回true，则中断执行
-                if (canceled === true) {
-                    return;
-                }
-            }
-
-            // xhr状态变化处理
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    var status = fakeXHR.status || xhr.status;
-                    // IE9会把204状态码变成1223
-                    if (status === 1223) {
-                        status = 204;  // 这个是没有内容，不过开发者基本无需care
+                    if (!fakeXHR.status) {
+                        fakeXHR.status = 0;
                     }
 
-                    fakeXHR.status = fakeXHR.status || status;
                     fakeXHR.readyState = xhr.readyState;
-                    fakeXHR.responseText = xhr.responseText;
-                    fakeXHR.responseXML = xhr.responseXML;
+                    fakeXHR.responseText = '';
+                    fakeXHR.responseXML = '';
+                    reject(fakeXHR);
+                };
 
-                    if (typeof me.hooks.afterReceive === 'function') {
-                        me.hooks.afterReceive(fakeXHR, options);
-                    }
+                // 如果超时了，直接处理自己的状态，进而打断整个状态
+                if (options.timeout > 0) {
+                    timeoutTic = setTimeout(function () {
+                        fakeXHR.status = 408; // HTTP 408: Request Timeout
+                        fakeXHR.abort();
+                    }, options.timeout);
+                }
+            });
 
-                    // 如果请求不成功，也就不用再分解数据了，直接丢回去就好
-                    if (status < 200 || (status >= 300 && status !== 304)) {
-                        reject(fakeXHR);
+            // 声明xhrPromise代表了真正的xhr对象的执行状态
+            var xhrPromise = new Promise(function (resolve, reject) {
+                // 执行beforeCreate hook
+                if (typeof me.hooks.beforeCreate === 'function') {
+                    // 可以在hook中直接调用resolve和reject来改变状态
+                    // 或者去关联另外一个Promise
+                    var canceled = me.hooks.beforeCreate(options, resolve, reject);
+                    // 如果返回true，则中断执行
+                    if (canceled === true) {
                         return;
                     }
-
-                    var data = xhr.responseText;
-                    var errorDetail;
-                    if (options.dataType === 'json') {
-                        try {
-                            data = JSON.parse(data);
-                        }
-                        catch (ex) {
-                            // 服务器返回的数据不符合JSON格式，认为请求失败
-                            errorDetail = {
-                                responseText: data,
-                                exceptionMessage: ex.toString(),
-                                errorStage: 'JSON.parse',
-                                originalException: ex
-                            };
-                            fakeXHR.error = errorDetail;
-                            reject(fakeXHR);
-                            return;
-                        }
-                    }
-
-                    if (typeof me.hooks.afterParse === 'function') {
-                        try {
-                            data = me.hooks.afterParse(data, fakeXHR, options);
-                        }
-                        catch (ex) {
-                            errorDetail = {
-                                responseText: data,
-                                exceptionMessage: ex.toString(),
-                                errorStage: 'hooks.afterParse',
-                                hook: me.hooks.afterParse.toString(),
-                                originalException: ex
-                            };
-
-                            fakeXHR.error = errorDetail;
-                            reject(fakeXHR);
-                            return;
-                        }
-                    }
-
-                    // 数据处理成功后，进行回调
-                    resolve(data);
                 }
-            };
 
-            var method = options.method.toUpperCase();
-            var data = _.deepExtend({}, options.urlParam);
-            if (method === 'GET') {
-                _.deepExtend(data, options.data);
-            }
-            if (options.cache === false) {
-                data[REQID_PARAM_KEY] = fc.util.uid();
-            }
+                // xhr状态变化处理
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        var status = fakeXHR.status || xhr.status;
+                        // IE9会把204状态码变成1223
+                        if (status === 1223) {
+                            status = 204;  // 这个是没有内容，不过开发者基本无需care
+                        }
 
-            var path = _.detach(data, 'path');
-            var query = me.hooks.serializeData(
-                '', data, 'application/x-www-form-urlencoded'
-            );
-            var url = options.url;
-            var delimiter = url.indexOf('?') >= 0 ? '&' : '?';
-            if (query || path) {
-                url += delimiter + _.chain(['path=' + path, query]).purify().values().value().join('&');
-            }
+                        fakeXHR.status = fakeXHR.status || status;
+                        fakeXHR.readyState = xhr.readyState;
+                        fakeXHR.responseText = xhr.responseText;
+                        fakeXHR.responseXML = xhr.responseXML;
 
-            xhr.open(method, url, true);
+                        if (typeof me.hooks.afterReceive === 'function') {
+                            me.hooks.afterReceive(fakeXHR, options);
+                        }
 
-            if (typeof me.hooks.beforeSend === 'function') {
-                me.hooks.beforeSend(xhrWrapper, options);
-            }
+                        // 如果请求不成功，也就不用再分解数据了，直接丢回去就好
+                        if (status < 200 || (status >= 300 && status !== 304)) {
+                            reject(fakeXHR);
+                            return;
+                        }
 
-            if (method === 'GET') {
-                xhr.send();
-            }
-            else {
-                var contentType = options.contentType
-                    || 'application/x-www-form-urlencoded';
-                query = me.hooks.serializeData(
-                    '', options.data, contentType, xhrWrapper
+                        var data = xhr.responseText;
+                        var errorDetail;
+                        if (options.dataType === 'json') {
+                            try {
+                                data = JSON.parse(data);
+                            }
+                            catch (ex) {
+                                // 服务器返回的数据不符合JSON格式，认为请求失败
+                                errorDetail = {
+                                    responseText: data,
+                                    exceptionMessage: ex.toString(),
+                                    errorStage: 'JSON.parse',
+                                    originalException: ex
+                                };
+                                fakeXHR.error = errorDetail;
+                                reject(fakeXHR);
+                                return;
+                            }
+                        }
+
+                        if (typeof me.hooks.afterParse === 'function') {
+                            try {
+                                data = me.hooks.afterParse(data, fakeXHR, options);
+                            }
+                            catch (ex) {
+                                errorDetail = {
+                                    responseText: data,
+                                    exceptionMessage: ex.toString(),
+                                    errorStage: 'hooks.afterParse',
+                                    hook: me.hooks.afterParse.toString(),
+                                    originalException: ex
+                                };
+
+                                fakeXHR.error = errorDetail;
+                                reject(fakeXHR);
+                                return;
+                            }
+                        }
+                        // 如果打开了缓存，则设置到缓存池中,只缓存请求成功的数据
+                        if (options.isCacheOn) {
+                            ajaxCache.setCache(options, data);
+                        }
+                        // 数据处理成功后，进行回调
+                        resolve(data);
+                    }
+                };
+
+                var method = options.method.toUpperCase();
+                var data = _.deepExtend({}, options.urlParam);
+                if (method === 'GET') {
+                    _.deepExtend(data, options.data);
+                }
+                if (options.cache === false) {
+                    data[REQID_PARAM_KEY] = fc.util.uid();
+                }
+
+                var path = _.detach(data, 'path');
+                var query = me.hooks.serializeData(
+                    '', data, 'application/x-www-form-urlencoded'
                 );
-                if (options.charset) {
-                    contentType += ';charset=' + options.charset;
+                var url = options.url;
+                var delimiter = url.indexOf('?') >= 0 ? '&' : '?';
+                if (query || path) {
+                    url += delimiter + _.chain(['path=' + path, query]).purify().values().value().join('&');
                 }
-                xhr.setRequestHeader('Content-Type', contentType);
-                xhr.send(query);
-            }
-        });
 
-        fakeXHR = Promise.race([xhrPromise, racingPromise]);
-        _.deepExtend(fakeXHR, xhrWrapper);
+                xhr.open(method, url, true);
 
-        fakeXHR.ensure(function () {
-            clearTimeout(timeoutTic);
-        });
+                if (typeof me.hooks.beforeSend === 'function') {
+                    me.hooks.beforeSend(xhrWrapper, options);
+                }
 
+                if (method === 'GET') {
+                    xhr.send();
+                }
+                else {
+                    var contentType = options.contentType
+                        || 'application/x-www-form-urlencoded';
+                    query = me.hooks.serializeData(
+                        '', options.data, contentType, xhrWrapper
+                    );
+                    if (options.charset) {
+                        contentType += ';charset=' + options.charset;
+                    }
+                    xhr.setRequestHeader('Content-Type', contentType);
+                    xhr.send(query);
+                }
+            });
+
+            fakeXHR = Promise.race([xhrPromise, racingPromise]);
+            _.deepExtend(fakeXHR, xhrWrapper);
+
+            fakeXHR.ensure(function () {
+                clearTimeout(timeoutTic);
+            });
         return fakeXHR;
+        }
     };
 
     /**
