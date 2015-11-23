@@ -102,7 +102,7 @@ define(function (require) {
                     if (oException.name == 'QuotaExceededError') {
                         console.warn('已经超出本地存储限定大小！');
                         // 清除该key的缓存
-                        localStorage.removeItem('cacheKey');
+                        localStorage.removeItem(cacheKey);
                         return false;
                     }
                 }
